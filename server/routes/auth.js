@@ -1,12 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
+// import controllers
+const { signup, accountActivation, signin } = require('../controllers/auth');
 
-router.get('/signup', (req, res) => {
-    res.json({
-        data: 'You have successfully signed up'
-    });
-});
+
+// import validators
+const {userSignupValidator, userSigninValidator} = require('../validators/auth');
+const {runValidation} = require('../validators');
+
+router.post('/signup', userSignupValidator, runValidation, signup);
+router.post('/account-activation', accountActivation);
+router.post('/signin', userSigninValidator, runValidation, signin);
 
 
 
