@@ -1,5 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const expressJWT = require('express-jwt');
+
 
 // exports.signup = (req, res) => {
 //     console.log('REQ BODY:', req.body);
@@ -162,3 +164,8 @@ exports.signin = (req, res) => {
     })
   });
 }
+
+exports.requireSignin = expressJWT({
+  secret: process.env.JWT_SECRET, // req.user
+  algorithms: ['sha1', 'RS256', 'HS256'],
+})
