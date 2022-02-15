@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const expressJWT = require('express-jwt');
+const _ = require('lodash');
 
 
 // exports.signup = (req, res) => {
@@ -187,4 +188,91 @@ exports.adminMiddleware = (req, res, next) => {
       req.profile = user;
       next();
   });
+}
+
+exports.forgotPassword = (req, res) => {
+  const { email } = req.body;
+
+  User.findOne({ email }).exec((err, user) => {
+    if(err || !user){
+      return res.status(400).json({
+        error: `User with that email does not exist`
+      })
+    }
+  
+
+    const token = jwt.sign(
+        { _id: user._id, name: user.name },
+        process.env.JWT_RESET_PASSWORD,
+        { expiresIn: "10m" }
+    )
+
+
+    const emailData = {
+      from: process.env.EMAIL_FROM, // MAKE SURE THIS EMAIL IS YOUR GMAIL FOR WHICH YOU GENERATED APP PASSWORD
+      to: email, // WHO SHOULD BE RECEIVING THIS EMAIL? IT SHOULD BE THE USER EMAIL (VALID EMAIL ADDRESS) WHO IS TRYING TO SIGNUP
+      subject: `PASSWORD RESET LINK`,
+      html: `
+                <h1>Please use the following link to reset your password</h1>
+                <p>${process.env.CLIENT_URL}/auth/password/reset/${token}</p>
+                <hr />
+                <p>This email may contain sensitive information</p>
+                <p>${process.env.CLIENT_URL}</p>
+            `,
+    };
+
+    return user.updateOne({resetPasswordLink: token}, (err, success) => {
+      if(err) {
+        console.log(`Reset Password Link Error`, err)
+        return res.status(400).json({
+          error: `Database connection error on user password forgot request`
+        })
+      } else {
+        sendEmailWithNodemailer(req, res, emailData);
+      }
+    })
+
+    
+  });
+}
+
+exports.resetPassword = (req, res) => {
+  const { resetPasswordLink, newPassword } = req.body;
+
+  if(resetPasswordLink) {
+    jwt.verify(resetPasswordLink, process.env.JWT_RESET_PASSWORD, (err, decoded) => {
+      if(err) {
+        return res.status(400).json({
+          error: `Expired link. Try again!`
+        })
+      }
+
+      User.findOne({ resetPasswordLink }).exec((err, user) => {
+        if(err || !user) {
+          return res.status(400).json({
+            error: `Something went wrong. Try later!`
+          })
+        }
+
+        const updatedFields = {
+          password: newPassword,
+          resetPasswordLink: ''
+        }
+
+        user = _.extend(user, updatedFields);
+
+        user.save((err, result) => {
+          if(err) {
+            return res.status(400).json({
+              error: `Error resetting user password`
+            })
+          }
+
+          res.json({
+            message: `Great! Now you can login with your new password`
+          })
+        });
+      });
+    });
+  }
 }

@@ -71,11 +71,15 @@ const Signin = ({history}) => {
 
     return (
         <Layout>
-            <div className="col-d-6 offset-md-3">
+            <div className="col-md-6 offset-md-3">
                 <ToastContainer />
                 {isAuth() ? <Redirect to="/" /> : null}
                 <h1 className='p-5 text-center'>Signin</h1>
                 {signinForm()}
+                <br/>
+                <Link to='/auth/password/forgot' className='btn btn-sm btn-outline-danger'>
+                    Forgot Password?
+                </Link>
             </div>
         </Layout>
     );
