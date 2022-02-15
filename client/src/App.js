@@ -11,6 +11,10 @@ const App = () => {
         <p className="lead">
           MERN stack login register system with account activation, login with facebook and google as well as private and protected routes for authenticated user and users with the role of admin.
         </p>
+        <h3>Bonus</h3>
+        <p className="lead">
+          Profile update & deployment to digital ocean cloud server.
+        </p>
       </div>
     </Layout>
   );

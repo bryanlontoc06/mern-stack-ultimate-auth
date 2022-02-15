@@ -2,6 +2,8 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const expressJWT = require('express-jwt');
 const _ = require('lodash');
+const {OAuth2Client} = require('google-auth-library');
+
 
 
 // exports.signup = (req, res) => {
@@ -275,4 +277,56 @@ exports.resetPassword = (req, res) => {
       });
     });
   }
+}
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+exports.googleLogin = (req, res) => {
+  const { idToken } = req.body;
+
+  // verify the token
+  // get the user data
+  // verify token
+  // find user
+  client.verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID }).then(response => {
+    // console.log(`Google Login Response`, response);
+    const { email_verified, name, email } = response.payload;
+      if(email_verified) {
+        User.findOne({ email }).exec((err, user) => {
+          if(user) {
+            const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+            const { _id, email, name, role } = user;
+            return res.json({
+              token,
+              user: { _id, email, name, role }
+            })
+          } else {
+            let password = email + process.env.JWT_SECRET
+            user = new User({name, email, password})
+            user.save((err, data) => {
+              if(err) {
+                console.log(`Error Google Login on user save`, err)
+                return res.status(400).json({
+                  error: `Error saving user from Google Login`
+                })
+              }
+              const token = jwt.sign({ _id: data._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+              const { _id, email, name, role } = data;
+              return res.json({
+                token,
+                user: { _id, email, name, role }
+              })
+            })
+          }
+        });
+      } else {
+        return res.status(400).json({
+          error: `Google login failed. Try again!`
+        })
+      }
+    }).catch(error => {
+      console.log(`Error while verifying google token`, error);
+      return res.status(400).json({
+        error: `Google token is not valid`
+      })
+    });
 }
