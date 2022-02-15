@@ -110,7 +110,7 @@ const Admin = ({history}) => {
 
     return (
         <Layout>
-            <div className="col-d-6 offset-md-3">
+            <div className="col-md-6 offset-md-3">
                 <ToastContainer />
                 <h1 className='pt-5 text-center'>Admin</h1>
                 <p className='lead text-center'>Profile Update</p>
