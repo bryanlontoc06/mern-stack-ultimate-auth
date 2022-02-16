@@ -1,18 +1,3 @@
-Login with Google
-
-console.cloud.google.com
-
-On top blue menu bar click to create a new project
-On left sidebar menu > API & Services > Credentials > Create Credentials > OAuth client ID
-
-... if the options are greyed out?
-click on Configure consent screen > blue button on top right
-Go on with forms... domain name ... type anything ... works!
-
-In Create OAuth client id page
-just enter javascript origins > http://localhost:3000/
-
-
 const express = require('express');
 const compression = require('compression');
 const path = require('path');
